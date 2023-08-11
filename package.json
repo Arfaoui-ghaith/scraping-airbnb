@@ -1,0 +1,31 @@
+{
+  "name": "scraping-airbnb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "arrays-to-csv": "^2.0.1",
+    "axios": "^1.4.0",
+    "bluebird": "^3.7.2",
+    "cheerio": "^1.0.0-rc.12",
+    "csv-append": "^1.0.0",
+    "csv-parse": "^5.4.0",
+    "csv-parser": "^3.0.0",
+    "csvjson": "^5.1.0",
+    "dirty-json": "^0.9.2",
+    "extract-date-js": "^1.0.1",
+    "json-2-csv": "^4.1.0",
+    "json-find": "^2.0.8",
+    "json2xls": "^0.1.2",
+    "line-reader": "^0.4.0",
+    "price-parser": "^3.4.0",
+    "proxidoor": "^1.0.3",
+    "puppeteer": "^21.0.1"
+  }
+}
