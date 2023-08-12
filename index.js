@@ -25,8 +25,49 @@ const urlBaseHawaii = "https://www.airbnb.com/s/Hawaii--United-States/homes";
 const resultPathHawaii = "../states/hawaii";
 const urlBaseIdaho = "https://www.airbnb.com/s/Idaho--United-States/homes";
 const resultPathIdaho = "../states/idaho";
+const urlBaseIllinois = "https://www.airbnb.com/s/Illinois--United-States/homes"
+const resultPathIllinois = './states/illinois';
+const urlBaseIndiana = "https://www.airbnb.com/s/Indiana--United-States/homes"
+const resultPathIndiana = './states/indiana';
+const urlBaseIowa = "https://www.airbnb.com/s/Iowa--United-States/homes"
+const resultPathIowa = './states/iowa';
+const urlBaseKansas = "https://www.airbnb.com/s/Kansas--United-States/homes"
+const resultPathKansas = './states/kansas';
+const urlBaseKentucky = "https://www.airbnb.com/s/Kentucky--United-States/homes"
+const resultPathKentucky = '../states/kentucky';
+const urlBaseLouisiana = "https://www.airbnb.com/s/Louisiana--United-States/homes";
+const resultPathLouisiana = '../states/louisiana';
+const urlBaseMaine = "https://www.airbnb.com/s/Maine--United-States/homes"
+const resultPathMaine = "../states/maine";
+const urlBaseMaryland = "https://www.airbnb.com/s/Maryland--United-States/homes";
+const resultPathMaryland = "../states/maryland";
+const urlBaseMassachusetts	 = "https://www.airbnb.com/s/Massachusetts--United-States/homes";
+const resultPathMassachusetts	 = "../states/massachusetts";
+const urlBaseMichigan	 = "https://www.airbnb.com/s/Michigan--United-States/homes";
+const resultPathMichigan	 = "../states/michigan";
 
 
-scrapeListingsByState(urlBaseIdaho,resultPathIdaho, 'Idaho').then().catch()
+scrapeListingsByState(urlBaseKentucky,resultPathKentucky, 'Kentucky').then(
+    () => scrapeListingsByState(urlBaseLouisiana,resultPathLouisiana, 'Louisiana').then(
+        () => scrapeListingsByState(urlBaseMaine,resultPathMaine, 'Maine').then(
+            () => scrapeListingsByState(urlBaseMaryland,resultPathMaryland, 'Maryland').then(
+                () => scrapeListingsByState(urlBaseMassachusetts,resultPathMassachusetts, 'Massachusetts').then(
+                    () => scrapeListingsByState(urlBaseMichigan,resultPathMichigan, 'Michigan').then(
+                        () => scrapeListingsByState(urlBaseIdaho,resultPathIdaho, 'Idaho').then(
+                            () => scrapeListingsByState(urlBaseIllinois,resultPathIllinois, 'Illinois').then(
+                                () => scrapeListingsByState(urlBaseIndiana,resultPathIndiana, 'Indiana').then(
+                                    () => scrapeListingsByState(urlBaseIowa,resultPathIowa, 'Iowa').then(
+                                        () => scrapeListingsByState(urlBaseKansas,resultPathKansas, 'Kansas').then(
+                                        ).catch()
+                                    ).catch()
+                                ).catch()
+                            ).catch()
+                        ).catch()
+                    ).catch()
+                ).catch()
+            ).catch()
+        ).catch()
+    ).catch()
+).catch()
 
 

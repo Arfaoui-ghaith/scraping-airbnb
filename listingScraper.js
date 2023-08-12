@@ -2,9 +2,6 @@ const cheerio = require("cheerio");
 const dJSON = require('dirty-json');
 const priceParser = require('price-parser');
 const JsonFind = require("json-find");
-const {get} = require("axios");
-const {launch} = require("puppeteer");
-const {call} = require('proxidoor');
 const {contentRequest} = require("./contentRequest");
 
 

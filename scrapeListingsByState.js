@@ -5,13 +5,11 @@ const cheerio = require("cheerio");
 const dJSON = require("dirty-json");
 const JsonFind = require("json-find");
 const axios = require("axios");
-const { workerData, parentPort } = require('worker_threads');
-
+const { readFileSync } = require('fs');
 let converter = require('json-2-csv');
-const { appendFile, readFileSync} = require("fs");
-const {getListingReviews, getListingPriceAndReviews} = require("./listingReviewsScraper");
+const {getListingPriceAndReviews} = require("./listingReviewsScraper");
 const {saveResult} = require("./utils");
-
+const {csvAppend} = require("csv-append");
 
 const checkScrapedData = async (arr,path) => {
     const data = readFileSync(`${path}/listings.csv`, {encoding: 'utf-8'});
