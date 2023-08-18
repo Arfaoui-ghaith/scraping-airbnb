@@ -5,7 +5,7 @@ const cheerio = require("cheerio");
 const dJSON = require("dirty-json");
 const JsonFind = require("json-find");
 const axios = require("axios");
-const { readFileSync } = require('fs');
+const { readFileSync, existsSync, mkdirSync, writeFileSync } = require('fs');
 let converter = require('json-2-csv');
 const {getListingPriceAndReviews} = require("./listingReviewsScraper");
 const {saveResult} = require("./utils");
@@ -21,8 +21,24 @@ const checkScrapedData = async (arr,path) => {
     return arr.filter(x => !convertedData.some(c => c==x));
 }
 
+const checkResultPath = (path) => {
+    if (!existsSync(path)) {
+        mkdirSync(path, {recursive: true});
+    }
+    if (!existsSync(path+"/listings.csv")) {
+        writeFileSync(path+"/listings.csv",'',{ encoding: 'utf-8' });
+    }
+    if (!existsSync(path+"/prices.csv")) {
+        writeFileSync(path+"/prices.csv",'',{ encoding: 'utf-8' });
+    }
+    if (!existsSync(path+"/reviews.csv")) {
+        writeFileSync(path+"/reviews.csv",'',{ encoding: 'utf-8' });
+    }
+}
+
 exports.scrapeListingsByState = async (baseUrl, path, state) => {
     try {
+        checkResultPath(path);
         console.log(`Start gathering listings pages for ${state}...`)
         const pages = await getListingsPaginiationsList(baseUrl);
 
@@ -74,8 +90,10 @@ exports.scrapeListingsByState = async (baseUrl, path, state) => {
         }
 
         console.log(`${state} Finish Successfully!`)
+        return 1;
     }catch (e) {
         console.log(e);
+        return 0;
     }
 }
 

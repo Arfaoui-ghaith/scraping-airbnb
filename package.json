@@ -25,7 +25,10 @@
     "json2xls": "^0.1.2",
     "line-reader": "^0.4.0",
     "price-parser": "^3.4.0",
+    "promise-serial-exec": "^1.0.0",
     "proxidoor": "^1.0.3",
-    "puppeteer": "^21.0.1"
+    "puppeteer": "^21.0.1",
+    "sequmise": "^1.0.10",
+    "stack-promises": "^0.0.13"
   }
 }
