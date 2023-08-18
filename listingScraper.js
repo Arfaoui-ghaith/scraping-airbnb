@@ -3,14 +3,13 @@ const dJSON = require('dirty-json');
 const priceParser = require('price-parser');
 const JsonFind = require("json-find");
 const {contentRequest} = require("./contentRequest");
+const {puppeteerCall} = require("./utils");
 
 
-exports.getListingdata = async (url) => {
+exports.getListingdata = async (res) => {
 
     try {
-
-        const html = await contentRequest(url);
-        const $ = cheerio.load(html);
+        const $ = cheerio.load(res.data);
 
         let json = dJSON.parse($("script[id='data-deferred-state']").text());
         json = json["niobeMinimalClientData"][0][1].data.presentation.stayProductDetailPage.sections;

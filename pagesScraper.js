@@ -2,9 +2,10 @@ const cheerio = require("cheerio");
 const dJSON = require('dirty-json');
 const JsonFind = require("json-find");
 const {get} = require("axios");
+const {puppeteerCall} = require("./utils");
 
 exports.getListingsPaginiationsList = async (url) => {
-    const res = await get(url);
+    const res = await puppeteerCall(url);
 
     const $ = cheerio.load(res.data);
 
@@ -22,15 +23,5 @@ exports.getListingsPaginiationsList = async (url) => {
         channel: 'EXPLORE'
     }
 
-    return pageCursors.map(cursor => {
-        return {
-            url: url,
-            method: 'get',
-            params: {
-                ...params,
-                federated_search_session_id: federatedSearchSessionId,
-                cursor
-            }
-        }
-    });
+    return pageCursors.map(cursor =>  `${url}?pagination_search=${params.pagination_search}&search_type=unknown&channel=EXPLORE&federated_search_session_id=${federatedSearchSessionId}&cursor=${cursor}`);
 }

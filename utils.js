@@ -1,5 +1,6 @@
 const converter = require("json-2-csv");
 const {appendFile, readFileSync} = require("fs");
+const {launch} = require("puppeteer");
 
 
 exports.saveResult = async (data,path,separator) => {
@@ -17,4 +18,17 @@ exports.saveResult = async (data,path,separator) => {
 
         });
     }
+}
+
+exports.puppeteerCall = async (url,args) => {
+    const browser = await launch({
+        headless: 'new',
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
+    await page.goto(url+"", args);
+
+    const html = await page.content();
+    await browser.close();
+    return {data: html};
 }
