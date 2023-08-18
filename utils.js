@@ -51,8 +51,8 @@ exports.extractListingsIds = async (res) => {
     return staysInViewport.map(el => el.listingId);
 }
 
-exports.extractListings = async (res, listingId, path) => {
-    const values = await Promise.all([await getListingdata(res),await getListingPriceAndReviews(res,`${listingId}`)])
+exports.extractListings = async (resDetails, resExtra, listingId, path) => {
+    const values = await Promise.all([await getListingdata(resDetails),await getListingPriceAndReviews(resExtra,`${listingId}`)])
     const listingDetails = values[0];
     const {price, reviews} = values[1];
 

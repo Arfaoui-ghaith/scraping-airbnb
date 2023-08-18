@@ -56,13 +56,15 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
         console.log(newListings.length+` listings for ${city} - ${state} ready to scrape...`)
 
         const cluster = await Cluster.launch({
+            concurrency: Cluster.CONCURRENCY_CONTEXT,
             maxConcurrency: 3,
-            //timeout: 120000,
+            timeout: 120000,
             monitor: true,
             puppeteerOptions: {
                 headless: 'new',
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                executablePath: "C:/Users/Rjab/IdeaProjects/chrome-win64/chrome"
+                executablePath: "C:/Users/Rjab/IdeaProjects/chrome-win64/chrome",
+                defaultViewport: false
             }
         });
 
@@ -73,10 +75,13 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
         await cluster.task(async ({ page, data: { url, listingId, path, i, n } }) => {
             //console.log(`${i}/${n} : Start with ${city} - ${state}: `, `https://www.airbnb.com/rooms/${listingId}`);
             await page.goto(`https://www.airbnb.com/rooms/${listingId}/reviews`);
-            await page.waitForSelector('.c1k13iig .dir .dir-ltr');
-            const html = await page.content();
-            const res = { data: html };
-            await extractListings(res, listingId, path);
+            await page.waitForFunction(`document.getElementById("data-deferred-state") != ${null}`);
+            let html = await page.content();
+            const resDetails = { data: html };
+            await page.waitForSelector('._tyxjp1');
+            html = await page.content();
+            const resExtra = { data: html };
+            await extractListings(resDetails, resExtra, listingId, path);
             //console.log(`${i}/${n} : ${city} - ${state} Successfully "` + listingId + `" Scraped`);
         });
 

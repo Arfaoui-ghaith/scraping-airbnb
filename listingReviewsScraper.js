@@ -1,9 +1,5 @@
 const cheerio = require("cheerio");
 const priceParser = require('price-parser');
-const {launch} = require("puppeteer");
-
-let converter = require('json-2-csv');
-const { appendFile} = require("fs");
 
 exports.getListingPriceAndReviews = async (res,listingId) => {
     const $ = cheerio.load(res.data);
