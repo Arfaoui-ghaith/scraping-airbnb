@@ -30,6 +30,7 @@
     "promise-serial-exec": "^1.0.0",
     "proxidoor": "^1.0.3",
     "puppeteer": "^21.0.1",
+    "puppeteer-cluster": "^0.23.0",
     "sequmise": "^1.0.10",
     "stack-promises": "^0.0.13"
   }

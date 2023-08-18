@@ -1,12 +1,12 @@
 const { getListingsPaginiationsList } = require('./pagesScraper');
-const { getListingdata } = require('./listingScraper');
-const cheerio = require("cheerio");
-const dJSON = require("dirty-json");
-const JsonFind = require("json-find");
+
 const { readFileSync, existsSync, mkdirSync, writeFileSync } = require('fs');
 let converter = require('json-2-csv');
-const {getListingPriceAndReviews} = require("./listingReviewsScraper");
-const {saveResult, puppeteerCall} = require("./utils");
+
+const { extractListingsIds, extractListings} = require("./utils");
+const {get} = require("axios");
+const { Cluster } = require('puppeteer-cluster');
+const puppeteer = require("puppeteer");
 
 const checkScrapedData = async (arr,path) => {
     const data = readFileSync(`${path}/listings.csv`, {encoding: 'utf-8'});
@@ -39,57 +39,63 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
         console.log(`Start gathering listings pages for ${city} - ${state}...`)
         const pages = await getListingsPaginiationsList(baseUrl);
 
-        console.log(`Listings pages ready for ${state}, start to scrape...`);
+        console.log(`${pages.length} Listings pages ready for ${state}, start to scrape...`);
 
         let listings = [];
-        for(let page of pages) {
 
-                const res = await puppeteerCall(page);
+        let listingsPages = await Promise.all(pages.map(async page => await get(page)))
+        let listingsIds = await Promise.all(listingsPages.map(async page => await extractListingsIds(page)));
 
-                const $ = cheerio.load(res.data);
-
-                let json = dJSON.parse($("script[id='data-deferred-state']").text());
-                json = json["niobeMinimalClientData"][0][1].data.presentation;
-
-                const doc = JsonFind(json);
-
-                const {staysInViewport} = doc.findValues('staysInViewport');
-
-                listings = listings.concat(staysInViewport.map(el => el.listingId));
+        for (let ids of listingsIds){
+            listings = [...listings, ...ids]
         }
+
         listings = listings.filter((item, index) => listings.indexOf(item) === index);
 
         let newListings = await checkScrapedData(listings,path);
         console.log(newListings.length+` listings for ${city} - ${state} ready to scrape...`)
 
-        let i = 0;
-        for(let listingId of newListings){
-            try {
-                const res = await puppeteerCall(`https://www.airbnb.com/rooms/${listingId}/reviews`,{
-                    waitUntil: 'networkidle0'
-                });
-                console.log(`Start with ${state}: `, `https://www.airbnb.com/rooms/${listingId}`);
-                const listingDetails = await getListingdata(res);
-                const {price, reviews} = await getListingPriceAndReviews(res,`${listingId}`);
-
-                let l = [{scrapedAt: (new Date()).toUTCString(),listingId, ...listingDetails}];
-                let r = reviews;
-                let p = [price];
-                i++;
-
-                await Promise.all([
-                    await saveResult(l,path+"/listings.csv",';url'),
-                    await saveResult(p,path+"/prices.csv",';floatValue'),
-                    ...r.map( async review => await saveResult(review,path+"/reviews.csv",';month'))
-                ])
-
-                console.log(`${i}/${newListings.length} ${city} - ${state} Successfully "` + listingId + `" Scraped`);
-            }catch (e) {
-                console.log(e);
+        const cluster = await Cluster.launch({
+            maxConcurrency: 3,
+            //timeout: 120000,
+            monitor: true,
+            puppeteerOptions: {
+                headless: 'new',
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: "C:/Users/Rjab/IdeaProjects/chrome-win64/chrome"
             }
+        });
+
+        cluster.on("taskerror", (err, data) => {
+            console.log(`${data.i}/${data.n} : Error crawling https://www.airbnb.com/rooms/${data.listingId}: ${err.message}`);
+        });
+
+        await cluster.task(async ({ page, data: { url, listingId, path, i, n } }) => {
+            //console.log(`${i}/${n} : Start with ${city} - ${state}: `, `https://www.airbnb.com/rooms/${listingId}`);
+            await page.goto(`https://www.airbnb.com/rooms/${listingId}/reviews`);
+            await page.waitForSelector('.c1k13iig .dir .dir-ltr');
+            const html = await page.content();
+            const res = { data: html };
+            await extractListings(res, listingId, path);
+            //console.log(`${i}/${n} : ${city} - ${state} Successfully "` + listingId + `" Scraped`);
+        });
+
+        let i=0;
+        for(let listingId of newListings){
+            i++;
+            await cluster.queue({
+                url: `https://www.airbnb.com/rooms/${listingId}`,
+                listingId,
+                path,
+                i,
+                n: newListings.length
+            });
         }
 
-        console.log(`${state} Finish Successfully!`)
+        await cluster.idle();
+        await cluster.close();
+
+        console.log(`${city} - ${state} Finish!`)
         return 1;
     }catch (e) {
         console.log(e);
