@@ -57,7 +57,7 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
 
         const cluster = await Cluster.launch({
             concurrency: Cluster.CONCURRENCY_CONTEXT,
-            maxConcurrency: 3,
+            maxConcurrency: 4,
             timeout: 120000,
             monitor: true,
             puppeteerOptions: {
@@ -69,10 +69,10 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
         });
 
         cluster.on("taskerror", (err, data) => {
-            console.log(`${data.i}/${data.n} : Error crawling https://www.airbnb.com/rooms/${data.listingId}: ${err.message}`);
+            console.log(`Error crawling https://www.airbnb.com/rooms/${data.listingId}: ${err.message}`);
         });
 
-        await cluster.task(async ({ page, data: { url, listingId, path, i, n } }) => {
+        await cluster.task(async ({ page, data: { url, listingId, path } }) => {
             //console.log(`${i}/${n} : Start with ${city} - ${state}: `, `https://www.airbnb.com/rooms/${listingId}`);
             await page.goto(`https://www.airbnb.com/rooms/${listingId}/reviews`);
             await page.waitForFunction(`document.getElementById("data-deferred-state") != ${null}`);
@@ -91,9 +91,7 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
             await cluster.queue({
                 url: `https://www.airbnb.com/rooms/${listingId}`,
                 listingId,
-                path,
-                i,
-                n: newListings.length
+                path
             });
         }
 

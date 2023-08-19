@@ -14,7 +14,7 @@ const states = ['Alaska', 'Alabama', 'Arizona', 'Arkansas', 'Arkansas', 'Califor
 console.log(states.slice(23, 34));
 
 let areas = [];
-for( let state of states.slice(30, 31)){
+for( let state of states.slice(23, 34)){
     for(let city of geo.getCities('US',state.replace('-',' '))){
         areas.push({state, city});
     }
