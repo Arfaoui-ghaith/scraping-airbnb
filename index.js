@@ -14,18 +14,22 @@ const states = ['Alaska', 'Alabama', 'Arizona', 'Arkansas', 'Arkansas', 'Califor
 console.log(states.slice(23, 34));
 
 let areas = [];
+
 for( let state of states.slice(23, 34)){
-    for(let city of geo.getCities('US',state.replace('-',' '))){
-        areas.push({state, city});
+    let cities = geo.getCities('US',state.replace('-',' '))
+    let i=0;
+    for(let city of cities){
+        i++;
+        areas.push({state, city, i, n: cities.length});
     }
 }
 
-let promises = areas.map(area => async () => {
-    let { state, city } = area;
+let promises = areas.map((area) => async () => {
+    let { state, city, i , n } = area;
     let urlBase = `https://www.airbnb.com/s/${city.replace(' ','-')}--${state}--United-States/homes`;
     let resultPath = `../states/${state.toLowerCase()}`;
 
-    await scrapeListingsByState(urlBase, resultPath, state, city);
+    await scrapeListingsByState(urlBase, resultPath, state, city, i, n);
 })
 
 sequmise(promises).then().catch();

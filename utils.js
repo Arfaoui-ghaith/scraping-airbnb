@@ -25,17 +25,17 @@ const saveResult = async (data,path,separator) => {
     }
 }
 
-const puppeteerCall = async (url,args) => {
+exports.puppeteerCall = async (url,args) => {
     const browser = await launch({
         headless: 'new',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        executablePath: "C:/Users/Rjab/IdeaProjects/chrome-win64/chrome"
+        //executablePath: "C:/Users/Rjab/IdeaProjects/chrome-win64/chrome"
     });
     const page = await browser.newPage();
-    await page.goto(url+"", {
+    await page.goto(url, {
         timeout: 120000
     });
-    await page.waitForSelector('.c1k13iig .dir .dir-ltr');
+    await page.waitForFunction(`document.getElementById("data-deferred-state") != ${null}`);
 
     const html = await page.content();
     await browser.close();
@@ -51,17 +51,22 @@ exports.extractListingsIds = async (res) => {
     return staysInViewport.map(el => el.listingId);
 }
 
-exports.extractListings = async (resDetails, resExtra, listingId, path) => {
-    const values = await Promise.all([await getListingdata(resDetails),await getListingPriceAndReviews(resExtra,`${listingId}`)])
-    const listingDetails = values[0];
-    const {price, reviews} = values[1];
+exports.extractListingsDetails = async (resDetails, listingId, path) => {
+    const listingDetails = await getListingdata(resDetails);
 
     let l = [{scrapedAt: (new Date()).toUTCString(),listingId, ...listingDetails}];
+
+    await saveResult(l,path+"/listings.csv",';url');
+}
+
+exports.extractListingsReviewsAndPrice = async (resExtra, listingId, path) => {
+
+    const {price, reviews} = await getListingPriceAndReviews(resExtra,`${listingId}`);
+
     let r = reviews;
     let p = [price];
 
     await Promise.all([
-        await saveResult(l,path+"/listings.csv",';url'),
         await saveResult(p,path+"/prices.csv",';floatValue'),
         ...r.map( async review => await saveResult(review,path+"/reviews.csv",';month'))
     ]);

@@ -2,9 +2,10 @@ const cheerio = require("cheerio");
 const dJSON = require('dirty-json');
 const JsonFind = require("json-find");
 const {get} = require("axios");
+const {puppeteerCall} = require("./utils");
 
 exports.getListingsPaginiationsList = async (url) => {
-    const res = await get(url);
+    const res = await puppeteerCall(url);
 
     const $ = cheerio.load(res.data);
 

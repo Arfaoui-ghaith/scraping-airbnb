@@ -3,7 +3,7 @@ const { getListingsPaginiationsList } = require('./pagesScraper');
 const { readFileSync, existsSync, mkdirSync, writeFileSync } = require('fs');
 let converter = require('json-2-csv');
 
-const { extractListingsIds, extractListings} = require("./utils");
+const { extractListingsIds, extractListings, puppeteerCall, extractListingsDetails, extractListingsReviewsAndPrice} = require("./utils");
 const {get} = require("axios");
 const { Cluster } = require('puppeteer-cluster');
 const puppeteer = require("puppeteer");
@@ -33,17 +33,23 @@ const checkResultPath = (path) => {
     }
 }
 
-exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
+exports.scrapeListingsByState = async (baseUrl, path, state, city, index, length) => {
     try {
         checkResultPath(path);
         console.log(`Start gathering listings pages for ${city} - ${state}...`)
         const pages = await getListingsPaginiationsList(baseUrl);
 
-        console.log(`${pages.length} Listings pages ready for ${state}, start to scrape...`);
+        console.log(`${index}/${length} : Listings pages ready for ${city} - ${state}, start to scrape...`);
 
         let listings = [];
+        let listingsPages = [];
 
-        let listingsPages = await Promise.all(pages.map(async page => await get(page)))
+        for (let page of pages) {
+           let res = await puppeteerCall(page);
+           listingsPages.push(res);
+        }
+
+        //let listingsPages = await Promise.allSettled(pages.map(async page => await puppeteerCall(page)))
         let listingsIds = await Promise.all(listingsPages.map(async page => await extractListingsIds(page)));
 
         for (let ids of listingsIds){
@@ -63,7 +69,7 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
             puppeteerOptions: {
                 headless: 'new',
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                executablePath: "C:/Users/Rjab/IdeaProjects/chrome-win64/chrome",
+                //executablePath: "C:/Users/Rjab/IdeaProjects/chrome-win64/chrome",
                 defaultViewport: false
             }
         });
@@ -74,14 +80,18 @@ exports.scrapeListingsByState = async (baseUrl, path, state, city) => {
 
         await cluster.task(async ({ page, data: { url, listingId, path } }) => {
             //console.log(`${i}/${n} : Start with ${city} - ${state}: `, `https://www.airbnb.com/rooms/${listingId}`);
-            await page.goto(`https://www.airbnb.com/rooms/${listingId}/reviews`);
+            await page.goto(`https://www.airbnb.com/rooms/${listingId}/reviews`,{
+                //waitUntil: 'domcontentloaded',
+                timeout: 120000
+            });
             await page.waitForFunction(`document.getElementById("data-deferred-state") != ${null}`);
             let html = await page.content();
             const resDetails = { data: html };
-            await page.waitForSelector('._tyxjp1');
+            await extractListingsDetails(resDetails, listingId, path);
+            await page.waitForSelector('._1s21a6e2');
             html = await page.content();
             const resExtra = { data: html };
-            await extractListings(resDetails, resExtra, listingId, path);
+            await extractListingsReviewsAndPrice(resExtra, listingId, path);
             //console.log(`${i}/${n} : ${city} - ${state} Successfully "` + listingId + `" Scraped`);
         });
 
